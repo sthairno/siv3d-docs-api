@@ -1,0 +1,29 @@
+name: Markdown Chunk Generator
+description: Generate chunks for the Siv3D documentation
+
+inputs:
+  siv3d-docs-path:
+    description: The path to the siv3d.docs directory
+    required: true
+  siv3d-docs-language:
+    description: The language of the siv3d.docs directory
+    required: true
+  chunks-output-path:
+    description: The path to the chunks.json file
+    required: true
+  code-blocks-output-path:
+    description: The path to the code-blocks.json file
+    required: true
+
+runs:
+  using: node20
+  main: dist/index.js
+  args:
+    - "--siv3d-docs-path"
+    - ${{ inputs.siv3d-docs-path }}
+    - "--siv3d-docs-language"
+    - ${{ inputs.siv3d-docs-language }}
+    - "--chunks-output-path"
+    - ${{ inputs.chunks-output-path }}
+    - "--code-blocks-output-path"
+    - ${{ inputs.code-blocks-output-path }}

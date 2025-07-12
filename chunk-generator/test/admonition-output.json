@@ -1,0 +1,260 @@
+[
+  {
+    "type": "heading",
+    "depth": 1,
+    "children": [
+      {
+        "type": "text",
+        "value": "Admonition Test"
+      }
+    ]
+  },
+  {
+    "type": "heading",
+    "depth": 2,
+    "children": [
+      {
+        "type": "text",
+        "value": "Note Admonition"
+      }
+    ]
+  },
+  {
+    "type": "mkdocsAdmonition",
+    "admonitionType": "note",
+    "title": "Note Title",
+    "children": [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This is a note admonition with a title."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "It can contain multiple paragraphs and other markdown content."
+          }
+        ]
+      },
+      {
+        "type": "list",
+        "spread": false,
+        "children": [
+          {
+            "type": "listItem",
+            "spread": false,
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "List item 1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "spread": false,
+            "children": [
+              {
+                "type": "paragraph",
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "List item 2"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "heading",
+    "depth": 2,
+    "children": [
+      {
+        "type": "text",
+        "value": "Warning Admonition"
+      }
+    ]
+  },
+  {
+    "type": "mkdocsAdmonition",
+    "admonitionType": "warning",
+    "title": null,
+    "children": [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This is a warning admonition without a title."
+          }
+        ]
+      },
+      {
+        "type": "code",
+        "lang": "python",
+        "value": "def example():\n    return \"code block inside admonition\""
+      }
+    ]
+  },
+  {
+    "type": "heading",
+    "depth": 2,
+    "children": [
+      {
+        "type": "text",
+        "value": "Info Admonition"
+      }
+    ]
+  },
+  {
+    "type": "mkdocsAdmonition",
+    "admonitionType": "info",
+    "title": "Information",
+    "children": [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This is an info admonition with some important information."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "heading",
+    "depth": 2,
+    "children": [
+      {
+        "type": "text",
+        "value": "Success Admonition"
+      }
+    ]
+  },
+  {
+    "type": "mkdocsAdmonition",
+    "admonitionType": "success",
+    "title": "Success!",
+    "children": [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Operation completed successfully."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "heading",
+    "depth": 2,
+    "children": [
+      {
+        "type": "text",
+        "value": "Error Admonition"
+      }
+    ]
+  },
+  {
+    "type": "mkdocsAdmonition",
+    "admonitionType": "failure",
+    "title": "Error",
+    "children": [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Something went wrong."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "heading",
+    "depth": 2,
+    "children": [
+      {
+        "type": "text",
+        "value": "Custom Admonition"
+      }
+    ]
+  },
+  {
+    "type": "mkdocsAdmonition",
+    "admonitionType": "custom",
+    "title": "Custom Type",
+    "children": [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "This is a custom admonition type."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "heading",
+    "depth": 2,
+    "children": [
+      {
+        "type": "text",
+        "value": "Nested Admonition"
+      }
+    ]
+  },
+  {
+    "type": "mkdocsAdmonition",
+    "admonitionType": "info",
+    "title": "Main",
+    "children": [
+      {
+        "type": "paragraph",
+        "children": [
+          {
+            "type": "text",
+            "value": "Main content"
+          }
+        ]
+      },
+      {
+        "type": "mkdocsAdmonition",
+        "admonitionType": "info",
+        "title": "Sub",
+        "children": [
+          {
+            "type": "paragraph",
+            "children": [
+              {
+                "type": "text",
+                "value": "Sub content"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
