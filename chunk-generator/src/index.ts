@@ -52,25 +52,25 @@ function auditCodeBlocks(codeBlocks: CodeBlock[]): void {
 
 function main() {
   // Get input values with environment variable priority (GitHub Actions support)
-  const siv3dDocsPath = process.env["INPUT_SIV3D-DOCS-PATH"];
+  const siv3dDocsDir = process.env["INPUT_SIV3D-DOCS-DIR"];
   const siv3dDocsVersion = process.env["INPUT_SIV3D-DOCS-VERSION"];
   const siv3dDocsLanguage = process.env["INPUT_SIV3D-DOCS-LANGUAGE"];
-  const chunksOutputPath = process.env["INPUT_CHUNKS-OUTPUT-PATH"];
-  const codeBlocksOutputPath = process.env["INPUT_CODE-BLOCKS-OUTPUT-PATH"];
+  const chunksOutputFile = process.env["INPUT_CHUNKS-OUTPUT-FILE"];
+  const codeBlocksOutputDir = process.env["INPUT_CODE-BLOCKS-OUTPUT-DIR"];
   const disableValidation = process.env["INPUT_DISABLE-VALIDATION"] === "true";
 
   console.log(process.env);
 
   // Validate required arguments
-  if (!siv3dDocsPath || !siv3dDocsVersion || !siv3dDocsLanguage) {
+  if (!siv3dDocsDir || !siv3dDocsVersion || !siv3dDocsLanguage) {
     console.error(
       "Error: siv3d-docs-path, siv3d-docs-version, and siv3d-docs-language are required"
     );
     process.exit(1);
   }
 
-  if (!fs.existsSync(siv3dDocsPath)) {
-    console.error(`Error: siv3d.docs directory not found at ${siv3dDocsPath}`);
+  if (!fs.existsSync(siv3dDocsDir)) {
+    console.error(`Error: siv3d.docs directory not found at ${siv3dDocsDir}`);
     process.exit(1);
   }
 
@@ -86,7 +86,7 @@ function main() {
   const codeBlocks: CodeBlock[] = [];
 
   for (const { docsUrl, filePath, route } of walkSiv3dDocsMarkdowns(
-    siv3dDocsPath,
+    siv3dDocsDir,
     siv3dDocsLanguage
   )) {
     const pageId = route.map((p) => p.toLowerCase()).join("-");
@@ -117,15 +117,22 @@ function main() {
   }
 
   // Write chunks to file
-  if (chunksOutputPath) {
-    fs.writeFileSync(chunksOutputPath, JSON.stringify(chunks, null, 2));
-    console.log(`Chunks written to: ${chunksOutputPath}`);
+  if (chunksOutputFile) {
+    fs.writeFileSync(chunksOutputFile, JSON.stringify(chunks));
+    console.log(`Chunks written to: ${chunksOutputFile}`);
   }
 
   // Write code blocks to file
-  if (codeBlocksOutputPath) {
-    fs.writeFileSync(codeBlocksOutputPath, JSON.stringify(codeBlocks, null, 2));
-    console.log(`Code blocks written to: ${codeBlocksOutputPath}`);
+  if (codeBlocksOutputDir) {
+    if (!fs.existsSync(codeBlocksOutputDir)) {
+      fs.mkdirSync(codeBlocksOutputDir, { recursive: true });
+    }
+    for (const codeBlock of codeBlocks) {
+      fs.writeFileSync(
+        `${codeBlocksOutputDir}/${codeBlock.id}.json`,
+        JSON.stringify(codeBlock)
+      );
+    }
   }
 }
 

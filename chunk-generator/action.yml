@@ -2,7 +2,7 @@ name: Markdown Chunk Generator
 description: Generate chunks for the Siv3D documentation
 
 inputs:
-  siv3d-docs-path:
+  siv3d-docs-dir:
     description: The path to the siv3d.docs directory
     required: true
   siv3d-docs-language:
@@ -11,10 +11,10 @@ inputs:
   siv3d-docs-version:
     description: The current commit hash of siv3d.docs repository
     required: true
-  chunks-output-path:
+  chunks-output-file:
     description: The path to the chunks.json file
-  code-blocks-output-path:
-    description: The path to the code-blocks.json file
+  code-blocks-output-dir:
+    description: The path to the code-blocks directory
   disable-validation:
     description: Skip data validation (true or false)
     default: 'false'

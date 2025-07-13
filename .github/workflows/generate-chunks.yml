@@ -26,20 +26,20 @@ jobs:
       - name: Generate chunks for Japanese
         uses: ./chunk-generator/
         with:
-          siv3d-docs-path: ./siv3d.docs
+          siv3d-docs-dir: ./siv3d.docs
           siv3d-docs-language: ja-jp
           siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
-          chunks-output-path: chunks-ja-jp.json
-          code-blocks-output-path: code-blocks-ja-jp.json
+          chunks-output-file: chunks-ja-jp.json
+          code-blocks-output-dir: code-blocks-ja-jp
           
       - name: Generate chunks for English
         uses: ./chunk-generator/
         with:
-          siv3d-docs-path: ./siv3d.docs
+          siv3d-docs-dir: ./siv3d.docs
           siv3d-docs-language: en-us
           siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
-          chunks-output-path: chunks-en-us.json
-          code-blocks-output-path: code-blocks-en-us.json
+          chunks-output-file: chunks-en-us.json
+          code-blocks-output-dir: code-blocks-en-us
           
       - name: Upload generated chunks
         uses: actions/upload-artifact@v4
@@ -47,6 +47,6 @@ jobs:
           name: generated-chunks
           path: |
             chunks-ja-jp.json
-            code-blocks-ja-jp.json
+            code-blocks-ja-jp
             chunks-en-us.json
-            code-blocks-en-us.json
+            code-blocks-en-us
