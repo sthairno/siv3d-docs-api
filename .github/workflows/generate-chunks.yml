@@ -1,0 +1,54 @@
+name: Generate Documentation Chunks
+
+on:
+  workflow_dispatch:
+    inputs:
+      siv3d_docs_commit_hash:
+        description: 'siv3d.docs repository commit hash'
+        required: true
+        type: string
+
+jobs:
+  generate-chunks:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout chunk-generator repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Clone siv3d.docs repository
+        run: |
+          git clone https://github.com/Siv3D/siv3d.docs.git
+          cd siv3d.docs
+          git checkout ${{ github.event.inputs.siv3d_docs_commit_hash }}
+          
+      - name: Generate chunks for Japanese
+        uses: ./chunk-generator/
+        with:
+          siv3d-docs-path: ./siv3d.docs
+          siv3d-docs-language: ja-jp
+          chunks-output-path: chunks-ja-jp.json
+          code-blocks-output-path: code-blocks-ja-jp.json
+          
+      - name: Generate chunks for English
+        uses: ./chunk-generator/
+        with:
+          siv3d-docs-path: ./siv3d.docs
+          siv3d-docs-language: en-us
+          chunks-output-path: chunks-en-us.json
+          code-blocks-output-path: code-blocks-en-us.json
+          
+      - name: Upload generated chunks
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-chunks
+          path: |
+            chunks-ja-jp.json
+            code-blocks-ja-jp.json
+            chunks-en-us.json
+            code-blocks-en-us.json
