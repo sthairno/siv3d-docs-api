@@ -20,7 +20,7 @@ chunk-generator/
 │   ├── admonition-input.md
 │   └── admonition-output.json
 ├── schema.ts              # Zod data schemas
-├── actions.yml            # GitHub Actions config
+├── action.yml             # GitHub Actions config
 └── dist/                  # Build output
 ```
 
