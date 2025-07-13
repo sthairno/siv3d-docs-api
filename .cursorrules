@@ -53,13 +53,11 @@ chunk-generator/
 ### Prerequisites
 - Node.js 20+
 - TypeScript installed
-- Access to `siv3d.docs` directory (git submodule)
+- Access to `siv3d.docs` directory
 
 ### Setup
 ```bash
 # Install dependencies
-npm install
-# or
 yarn install
 
 # Verify siv3d.docs exists
@@ -69,20 +67,20 @@ ls ../siv3d.docs  # Should contain markdown files
 ### Build Process
 ```bash
 # Development build with type checking
-npx tsc
+yarn tsc
 
 # Production build (bundles into single file)
-npm run build
+yarn build
 # Creates: dist/index.js (Node.js 20 compatible, minified)
 ```
 
 ### Testing
 ```bash
 # Test MkDocs admonition parsing
-npm run test-admonition
+yarn test-admonition
 
 # Manual test with custom args
-npx ts-node src/index.ts \
+yarn ts-node src/index.ts \
   --siv3d-docs-path /path/to/siv3d.docs \
   --siv3d-docs-language ja-jp \
   --chunks-output-path chunks.json \
@@ -94,10 +92,10 @@ npx ts-node src/index.ts \
 #### Development Mode
 ```bash
 # Quick execution with predefined paths
-npm run generate
+yarn generate
 
 # Custom execution
-npx ts-node src/index.ts \
+yarn ts-node src/index.ts \
   --siv3d-docs-path ../siv3d.docs \
   --siv3d-docs-language en-us \
   --chunks-output-path chunks-en.json \
@@ -107,7 +105,7 @@ npx ts-node src/index.ts \
 #### Production Mode
 ```bash
 # Build first
-npm run build
+yarn build
 
 # Execute built version
 node dist/index.js \
