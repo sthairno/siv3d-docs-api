@@ -18,12 +18,3 @@ inputs:
 runs:
   using: node20
   main: dist/index.js
-  args:
-    - "--siv3d-docs-path"
-    - ${{ inputs.siv3d-docs-path }}
-    - "--siv3d-docs-language"
-    - ${{ inputs.siv3d-docs-language }}
-    - "--chunks-output-path"
-    - ${{ inputs.chunks-output-path }}
-    - "--code-blocks-output-path"
-    - ${{ inputs.code-blocks-output-path }}

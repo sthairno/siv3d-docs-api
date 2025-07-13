@@ -51,6 +51,24 @@ function auditCodeBlocks(codeBlocks: CodeBlock[]): void {
   }
 }
 
+/**
+ * GitHub Actions環境変数またはCLI引数から値を取得する
+ * GitHub Actionsでは INPUT_* 環境変数が自動的に設定される
+ * ローカル開発では --* CLI引数を使用する
+ */
+function getArgumentValue(argName: string, argv: minimist.ParsedArgs): string | undefined {
+  // GitHub Actions環境変数を先にチェック
+  const envVarName = `INPUT_${argName.toUpperCase().replace(/-/g, "_")}`;
+  const envValue = process.env[envVarName];
+  
+  if (envValue) {
+    return envValue;
+  }
+
+  // CLI引数にフォールバック
+  return argv[argName];
+}
+
 function main() {
   // Parse command line arguments using minimist
   const argv = minimist(process.argv.slice(2), {
@@ -63,11 +81,12 @@ function main() {
     ],
   });
 
-  const siv3dDocsPath = argv["siv3d-docs-path"];
-  const siv3dDocsLanguage = argv["siv3d-docs-language"];
-  const chunksOutputPath = argv["chunks-output-path"];
-  const codeBlocksOutputPath = argv["code-blocks-output-path"];
-  const disableAudit = ["true", "1", ""].includes(argv["disable-audit"]);
+  // 環境変数またはCLI引数から値を取得
+  const siv3dDocsPath = getArgumentValue("siv3d-docs-path", argv);
+  const siv3dDocsLanguage = getArgumentValue("siv3d-docs-language", argv);
+  const chunksOutputPath = getArgumentValue("chunks-output-path", argv);
+  const codeBlocksOutputPath = getArgumentValue("code-blocks-output-path", argv);
+  const disableAudit = ["true", "1", ""].includes(getArgumentValue("disable-audit", argv) || "");
 
   // Validate required arguments
   if (!siv3dDocsPath) {
