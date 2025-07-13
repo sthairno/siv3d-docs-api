@@ -72,7 +72,7 @@ export function splitMarkdownIntoChunks(
 
   // 各セクションをチャンクに変換
   let chunks = sections.map<Chunk>((section) => ({
-    objectID: section.id,
+    objectID: `${pageId}_${section.id}`,
     pageID: pageId,
     headings: section.heading.getHeadingStack().map((h) => h?.text ?? ""),
     url: `${docsUrl}#${section.id}`,

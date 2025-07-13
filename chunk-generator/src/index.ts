@@ -17,9 +17,9 @@ import minimist from "minimist";
 
 function parseDisableAudit(value: string | boolean | undefined): boolean {
   if (value === undefined) return false;
-  if (typeof value === 'boolean') return value;
-  if (typeof value === 'string') {
-    return value.toLowerCase() === 'true' || value === '1';
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    return value.toLowerCase() === "true" || value === "1";
   }
   return false;
 }
@@ -72,11 +72,18 @@ function main() {
   });
 
   // Get input values with environment variable priority (GitHub Actions support)
-  const siv3dDocsPath = process.env["INPUT_SIV3D-DOCS-PATH"] || argv["siv3d-docs-path"];
-  const siv3dDocsLanguage = process.env["INPUT_SIV3D-DOCS-LANGUAGE"] || argv["siv3d-docs-language"];
-  const chunksOutputPath = process.env["INPUT_CHUNKS-OUTPUT-PATH"] || argv["chunks-output-path"];
-  const codeBlocksOutputPath = process.env["INPUT_CODE-BLOCKS-OUTPUT-PATH"] || argv["code-blocks-output-path"];
-  const disableAudit = parseDisableAudit(process.env["INPUT_DISABLE-AUDIT"] || argv["disable-audit"]);
+  const siv3dDocsPath =
+    process.env["INPUT_SIV3D-DOCS-PATH"] || argv["siv3d-docs-path"];
+  const siv3dDocsLanguage =
+    process.env["INPUT_SIV3D-DOCS-LANGUAGE"] || argv["siv3d-docs-language"];
+  const chunksOutputPath =
+    process.env["INPUT_CHUNKS-OUTPUT-PATH"] || argv["chunks-output-path"];
+  const codeBlocksOutputPath =
+    process.env["INPUT_CODE-BLOCKS-OUTPUT-PATH"] ||
+    argv["code-blocks-output-path"];
+  const disableAudit = parseDisableAudit(
+    process.env["INPUT_DISABLE-AUDIT"] || argv["disable-audit"]
+  );
 
   // Validate required arguments
   if (!siv3dDocsPath) {
@@ -124,9 +131,7 @@ function main() {
     )) {
       const pageId = route.map((p) => p.toLowerCase()).join("-");
       const content = fs.readFileSync(filePath, "utf-8");
-      const markdown = new MarkdownDocument(content, {
-        idPrefix: pageId,
-      });
+      const markdown = new MarkdownDocument(content);
       chunks.push(
         ...splitMarkdownIntoChunks(
           markdown,
@@ -137,7 +142,7 @@ function main() {
       );
       codeBlocks.push(
         ...markdown.codeBlocks.map<CodeBlock>((src) => ({
-          id: src.id,
+          id: `${pageId}_${src.id}`,
           pageId: pageId,
           language: src.language,
           content: src.content,

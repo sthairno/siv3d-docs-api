@@ -78,12 +78,8 @@ export class MarkdownDocument {
   private _ast: AstRoot;
   private _firstHeading: MarkdownHeading | null;
   private _codeBlocks: MarkdownCodeBlock[];
-  private _idPrefix: string;
 
-  constructor(
-    content: string,
-    options?: { retrieveCodeBlocks?: boolean; idPrefix?: string }
-  ) {
+  constructor(content: string, options?: { retrieveCodeBlocks?: boolean }) {
     this._ast = markdownToAst(content, {
       extensions: [mkdocsAdmonition],
       mdastExtensions: [mkdocsAdmonitionFromMarkdown],
@@ -91,7 +87,6 @@ export class MarkdownDocument {
 
     this._firstHeading = null;
     this._codeBlocks = [];
-    this._idPrefix = options?.idPrefix ?? "";
 
     this.retrieveHeadings();
     if (options?.retrieveCodeBlocks ?? true) {
@@ -134,7 +129,7 @@ export class MarkdownDocument {
       const headingText = astToString(node.children, {
         includeHtml: false,
       });
-      const headingId = this._idPrefix + generateMkdocsHeadingId(headingText);
+      const headingId = generateMkdocsHeadingId(headingText);
       const headingNumber = idCounts.get(headingId) ?? 0;
       const heading = new MarkdownHeading({
         astIndex: index,
