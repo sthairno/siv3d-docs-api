@@ -8,15 +8,15 @@ inputs:
   siv3d-docs-language:
     description: The language of the siv3d.docs directory
     required: true
+  siv3d-docs-version:
+    description: The current commit hash of siv3d.docs repository
+    required: true
   chunks-output-path:
     description: The path to the chunks.json file
-    required: true
   code-blocks-output-path:
     description: The path to the code-blocks.json file
-    required: true
-  disable-audit:
+  disable-validation:
     description: Skip data validation (true or false)
-    required: false
     default: 'false'
 
 runs:

@@ -27,6 +27,7 @@ function splitChunkIntoChunks(src: Chunk, maxLength: number): Chunk[] {
       chunks.push({
         objectID: `${src.objectID}-${chunks.length + 1}`,
         pageID: src.pageID,
+        pageVersion: src.pageVersion,
         headings: [...src.headings],
         url: src.url,
         order: src.order,
@@ -48,6 +49,7 @@ function splitChunkIntoChunks(src: Chunk, maxLength: number): Chunk[] {
     chunks.push({
       objectID: `${src.objectID}-${chunks.length + 1}`,
       pageID: src.pageID,
+      pageVersion: src.pageVersion,
       headings: [...src.headings],
       url: src.url,
       order: src.order,
@@ -62,6 +64,7 @@ export function splitMarkdownIntoChunks(
   markdown: MarkdownDocument,
   docsUrl: string,
   pageId: string,
+  version: string,
   contentMaxLength: number
 ): Chunk[] {
   // セクションに分割
@@ -74,6 +77,7 @@ export function splitMarkdownIntoChunks(
   let chunks = sections.map<Chunk>((section) => ({
     objectID: `${pageId}_${section.id}`,
     pageID: pageId,
+    pageVersion: version,
     headings: section.heading.getHeadingStack().map((h) => h?.text ?? ""),
     url: `${docsUrl}#${section.id}`,
     order: 0,

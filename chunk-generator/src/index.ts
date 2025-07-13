@@ -5,24 +5,14 @@
 // 条件：
 // - yarn runで実行できること
 // - ファイル出力はせず、生成したJSONを標準出力のみすること
-// - 実行開始時に、siv3d.docsの中身が存在するか確認すること (git submoduleの実行忘れを防ぐため)
-// - 配列はen-usとja-jpで別々になるため、コマンドの引数で言語を指定できるようにすること
+// - 実行開始時に、siv3d.docsの中身が存在するか確認すること
+// - 配列はen-usとja-jpで別々になるため、入力で言語を指定できるようにすること
 
 import * as fs from "fs";
-import { walkSiv3dDocsMarkdowns } from "./lib/utils";
 import { CONTENT_MAX_LENGTH, ChunkSchema, Chunk, CodeBlock } from "../schema";
+import { walkSiv3dDocsMarkdowns } from "./lib/utils";
 import { splitMarkdownIntoChunks } from "./lib/chunks";
 import { MarkdownDocument } from "./lib/markdown";
-import minimist from "minimist";
-
-function parseDisableAudit(value: string | boolean | undefined): boolean {
-  if (value === undefined) return false;
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") {
-    return value.toLowerCase() === "true" || value === "1";
-  }
-  return false;
-}
 
 function auditChunks(chunks: Chunk[]): void {
   let chunkIdx = 0;
@@ -61,58 +51,29 @@ function auditCodeBlocks(codeBlocks: CodeBlock[]): void {
 }
 
 function main() {
-  // Parse command line arguments using minimist
-  const argv = minimist(process.argv.slice(2), {
-    string: [
-      "siv3d-docs-path",
-      "siv3d-docs-language",
-      "chunks-output-path",
-      "code-blocks-output-path",
-    ],
-  });
-
   // Get input values with environment variable priority (GitHub Actions support)
-  const siv3dDocsPath =
-    process.env["INPUT_SIV3D-DOCS-PATH"] || argv["siv3d-docs-path"];
-  const siv3dDocsLanguage =
-    process.env["INPUT_SIV3D-DOCS-LANGUAGE"] || argv["siv3d-docs-language"];
-  const chunksOutputPath =
-    process.env["INPUT_CHUNKS-OUTPUT-PATH"] || argv["chunks-output-path"];
-  const codeBlocksOutputPath =
-    process.env["INPUT_CODE-BLOCKS-OUTPUT-PATH"] ||
-    argv["code-blocks-output-path"];
-  const disableAudit = parseDisableAudit(
-    process.env["INPUT_DISABLE-AUDIT"] || argv["disable-audit"]
-  );
+  const siv3dDocsPath = process.env["INPUT_SIV3D-DOCS-PATH"];
+  const siv3dDocsVersion = process.env["INPUT_SIV3D-DOCS-VERSION"];
+  const siv3dDocsLanguage = process.env["INPUT_SIV3D-DOCS-LANGUAGE"];
+  const chunksOutputPath = process.env["INPUT_CHUNKS-OUTPUT-PATH"];
+  const codeBlocksOutputPath = process.env["INPUT_CODE-BLOCKS-OUTPUT-PATH"];
+  const disableValidation = process.env["INPUT_DISABLE-VALIDATION"] === "true";
+
+  console.log(process.env);
 
   // Validate required arguments
-  if (!siv3dDocsPath) {
-    console.error("Error: --siv3d-docs-path is required");
+  if (!siv3dDocsPath || !siv3dDocsVersion || !siv3dDocsLanguage) {
+    console.error(
+      "Error: siv3d-docs-path, siv3d-docs-version, and siv3d-docs-language are required"
+    );
     process.exit(1);
   }
 
-  if (!siv3dDocsLanguage) {
-    console.error("Error: --siv3d-docs-language is required");
-    process.exit(1);
-  }
-
-  if (!chunksOutputPath) {
-    console.error("Error: --chunks-output-path is required");
-    process.exit(1);
-  }
-
-  if (!codeBlocksOutputPath) {
-    console.error("Error: --code-blocks-output-path is required");
-    process.exit(1);
-  }
-
-  // Check if siv3d.docs exists
   if (!fs.existsSync(siv3dDocsPath)) {
     console.error(`Error: siv3d.docs directory not found at ${siv3dDocsPath}`);
     process.exit(1);
   }
 
-  // Validate language
   const validLanguages = ["en-us", "ja-jp"];
   if (!validLanguages.includes(siv3dDocsLanguage)) {
     console.error(
@@ -121,50 +82,50 @@ function main() {
     process.exit(1);
   }
 
-  try {
-    const chunks: Chunk[] = [];
-    const codeBlocks: CodeBlock[] = [];
+  const chunks: Chunk[] = [];
+  const codeBlocks: CodeBlock[] = [];
 
-    for (const { docsUrl, filePath, route } of walkSiv3dDocsMarkdowns(
-      siv3dDocsPath,
-      siv3dDocsLanguage
-    )) {
-      const pageId = route.map((p) => p.toLowerCase()).join("-");
-      const content = fs.readFileSync(filePath, "utf-8");
-      const markdown = new MarkdownDocument(content);
-      chunks.push(
-        ...splitMarkdownIntoChunks(
-          markdown,
-          docsUrl,
-          pageId,
-          CONTENT_MAX_LENGTH
-        )
-      );
-      codeBlocks.push(
-        ...markdown.codeBlocks.map<CodeBlock>((src) => ({
-          id: `${pageId}_${src.id}`,
-          pageId: pageId,
-          language: src.language,
-          content: src.content,
-        }))
-      );
-    }
+  for (const { docsUrl, filePath, route } of walkSiv3dDocsMarkdowns(
+    siv3dDocsPath,
+    siv3dDocsLanguage
+  )) {
+    const pageId = route.map((p) => p.toLowerCase()).join("-");
+    const content = fs.readFileSync(filePath, "utf-8");
+    const markdown = new MarkdownDocument(content);
+    chunks.push(
+      ...splitMarkdownIntoChunks(
+        markdown,
+        docsUrl,
+        pageId,
+        siv3dDocsVersion,
+        CONTENT_MAX_LENGTH
+      )
+    );
+    codeBlocks.push(
+      ...markdown.codeBlocks.map<CodeBlock>((src) => ({
+        id: `${pageId}_${src.id}`,
+        pageId: pageId,
+        language: src.language,
+        content: src.content,
+      }))
+    );
+  }
 
-    if (!disableAudit) {
-      auditChunks(chunks);
-      auditCodeBlocks(codeBlocks);
-    }
+  if (!disableValidation) {
+    auditChunks(chunks);
+    auditCodeBlocks(codeBlocks);
+  }
 
-    // Write chunks to file
+  // Write chunks to file
+  if (chunksOutputPath) {
     fs.writeFileSync(chunksOutputPath, JSON.stringify(chunks, null, 2));
     console.log(`Chunks written to: ${chunksOutputPath}`);
+  }
 
-    // Write code blocks to file
+  // Write code blocks to file
+  if (codeBlocksOutputPath) {
     fs.writeFileSync(codeBlocksOutputPath, JSON.stringify(codeBlocks, null, 2));
     console.log(`Code blocks written to: ${codeBlocksOutputPath}`);
-  } catch (error) {
-    console.error("Error:", error);
-    process.exit(1);
   }
 }
 

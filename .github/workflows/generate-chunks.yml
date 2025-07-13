@@ -28,6 +28,7 @@ jobs:
         with:
           siv3d-docs-path: ./siv3d.docs
           siv3d-docs-language: ja-jp
+          siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
           chunks-output-path: chunks-ja-jp.json
           code-blocks-output-path: code-blocks-ja-jp.json
           
@@ -36,6 +37,7 @@ jobs:
         with:
           siv3d-docs-path: ./siv3d.docs
           siv3d-docs-language: en-us
+          siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
           chunks-output-path: chunks-en-us.json
           code-blocks-output-path: code-blocks-en-us.json
           

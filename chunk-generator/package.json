@@ -4,8 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --minify --target=node20 --outfile=dist/index.js",
-    "test-admonition": "ts-node test/admonition.ts",
-    "generate": "ts-node src/index.ts --siv3d-docs-path ../siv3d.docs --siv3d-docs-language ja-jp --chunks-output-path chunks.json --code-blocks-output-path code-blocks.json"
+    "test-admonition": "ts-node test/admonition.ts"
   },
   "dependencies": {
     "@types/mdast": "^4.0.4",
@@ -16,11 +15,9 @@
     "micromark-factory-space": "^2.0.1",
     "micromark-util-character": "^2.1.1",
     "micromark-util-symbol": "^2.0.1",
-    "minimist": "^1.2.8",
     "zod": "^3.25.74"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.5",
     "esbuild": "^0.25.6",
     "jest-diff": "^30.0.4",
     "prettier": "^3.6.2",

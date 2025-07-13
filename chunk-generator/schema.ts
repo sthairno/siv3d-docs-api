@@ -9,6 +9,7 @@ export const ChunkSchema = z.object({
       "ヘッダーから生成したチャンクのID。配列の中でユニークである必要がある"
     ),
   pageID: z.string().describe("ページのID。"),
+  pageVersion: z.string().describe("ページのバージョン。"),
   headings: z
     .array(z.string())
     .describe(
