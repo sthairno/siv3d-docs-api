@@ -21,11 +21,12 @@ jobs:
         with:
           node-version: '20'
           
-      - name: Clone siv3d.docs repository
-        run: |
-          git clone https://github.com/Siv3D/siv3d.docs.git
-          cd siv3d.docs
-          git checkout ${{ github.event.inputs.siv3d_docs_commit_hash }}
+      - name: Checkout siv3d.docs repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'Siv3D/siv3d.docs'
+          ref: ${{ github.event.inputs.siv3d_docs_commit_hash }}
+          path: 'siv3d.docs'
           
       - name: Generate chunks for Japanese
         uses: ./chunk-generator/
