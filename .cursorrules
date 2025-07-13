@@ -1,7 +1,7 @@
 # chunk-generator Project Rules
 
 ## Project Overview
-This is a TypeScript tool that converts Siv3D documentation (Markdown) into optimized chunks for Algolia search engine.
+TypeScript tool that converts Siv3D documentation (Markdown) into optimized chunks for Algolia search engine.
 
 ## Architecture
 
@@ -15,8 +15,11 @@ chunk-generator/
 │       ├── markdown.ts    # Markdown parsing & processing
 │       ├── sections.ts    # Section splitting
 │       └── utils.ts       # Utility functions
+├── test/
+│   ├── admonition.ts      # Test for MkDocs admonition parsing
+│   ├── admonition-input.md
+│   └── admonition-output.json
 ├── schema.ts              # Zod data schemas
-├── package.json
 ├── actions.yml            # GitHub Actions config
 └── dist/                  # Build output
 ```
@@ -45,123 +48,137 @@ chunk-generator/
 }
 ```
 
-## Core Principles
+## Development Workflow
 
-### 1. Content Splitting Strategy
-- Split by sections (markdown headings)
+### Prerequisites
+- Node.js 20+
+- TypeScript installed
+- Access to `siv3d.docs` directory (git submodule)
+
+### Setup
+```bash
+# Install dependencies
+npm install
+# or
+yarn install
+
+# Verify siv3d.docs exists
+ls ../siv3d.docs  # Should contain markdown files
+```
+
+### Build Process
+```bash
+# Development build with type checking
+npx tsc
+
+# Production build (bundles into single file)
+npm run build
+# Creates: dist/index.js (Node.js 20 compatible, minified)
+```
+
+### Testing
+```bash
+# Test MkDocs admonition parsing
+npm run test-admonition
+
+# Manual test with custom args
+npx ts-node src/index.ts \
+  --siv3d-docs-path /path/to/siv3d.docs \
+  --siv3d-docs-language ja-jp \
+  --chunks-output-path chunks.json \
+  --code-blocks-output-path code-blocks.json
+```
+
+### Execution
+
+#### Development Mode
+```bash
+# Quick execution with predefined paths
+npm run generate
+
+# Custom execution
+npx ts-node src/index.ts \
+  --siv3d-docs-path ../siv3d.docs \
+  --siv3d-docs-language en-us \
+  --chunks-output-path chunks-en.json \
+  --code-blocks-output-path code-blocks-en.json
+```
+
+#### Production Mode
+```bash
+# Build first
+npm run build
+
+# Execute built version
+node dist/index.js \
+  --siv3d-docs-path ../siv3d.docs \
+  --siv3d-docs-language ja-jp \
+  --chunks-output-path chunks.json \
+  --code-blocks-output-path code-blocks.json
+```
+
+### Required Arguments
+- `--siv3d-docs-path` - Path to siv3d.docs directory
+- `--siv3d-docs-language` - Language code (`en-us` or `ja-jp`)
+- `--chunks-output-path` - Output file for chunk data
+- `--code-blocks-output-path` - Output file for code block data
+
+### Optional Arguments
+- `--disable-audit` - Skip data validation (`true`, `1`, or empty string)
+
+## Implementation Guidelines
+
+### Core Principles
+- Split content by markdown headings (sections)
 - Respect 1000 character limit per chunk
 - Maintain heading hierarchy in chunks
-- Preserve code blocks separately
+- Extract code blocks separately
+- Validate data integrity with Zod schemas
 
-### 2. Data Validation
-- Use Zod schemas for runtime validation
-- Check for duplicate IDs across all chunks
-- Validate required CLI arguments
-- Ensure data integrity before output
+### Error Handling
+- Validate all required CLI arguments
+- Check file/directory existence before processing
+- Audit data integrity before output
+- Use descriptive error messages with proper exit codes
 
-### 3. Multi-language Support
-- Support `en-us` and `ja-jp` languages
-- Language-specific file processing
-- Separate output generation per language
-
-## Implementation Patterns
-
-### CLI Argument Handling
+### TypeScript Patterns
 ```typescript
+// CLI argument parsing
 const argv = minimist(process.argv.slice(2), {
   string: ["siv3d-docs-path", "siv3d-docs-language", "chunks-output-path", "code-blocks-output-path"]
 });
+
+// Data validation
+auditChunks(chunks: Chunk[]): void
+auditCodeBlocks(codeBlocks: CodeBlock[]): void
 ```
 
-### File Processing Flow
-1. Validate arguments and directories
-2. Walk through markdown files recursively
-3. Parse each file with MDast
-4. Extract headings and code blocks
-5. Split content into chunks
-6. Validate data with Zod
-7. Output JSON files
-
-### Error Handling
-- Validate all required parameters
-- Check file/directory existence
-- Audit data integrity before output
-- Use descriptive error messages
-- Exit with proper error codes
-
-## Dependencies
-
-### Core Dependencies
-- `mdast-util-from-markdown` - Markdown AST parsing
-- `zod` - Schema validation
-- `minimist` - CLI argument parsing
-- `@types/mdast` - TypeScript types for MDast
-
-### Build Tools
-- `esbuild` - Fast bundling
-- `typescript` - Type checking
-- `ts-node` - Development execution
-
-## Code Style Guidelines
-
-### TypeScript Usage
-- Use strict type checking
-- Define interfaces for all data structures
-- Use Zod for runtime validation
-- Prefer explicit return types
-
-### Class Design
-- `MarkdownDocument` - Main document processor
+### Key Classes
+- `MarkdownDocument` - Main document processor with AST parsing
 - `MarkdownHeading` - Heading hierarchy management
 - Use getters for computed properties
 - Implement proper error handling
 
-### Function Naming
-- Use descriptive function names (`splitMarkdownIntoChunks`)
-- Prefix with action verb (`audit`, `split`, `generate`)
-- Use consistent parameter naming
+## Dependencies
 
-## Testing & Validation
+### Core Runtime
+- `mdast-util-from-markdown` - Markdown AST parsing
+- `zod` - Schema validation and runtime checking
+- `minimist` - CLI argument parsing
 
-### Data Integrity Checks
-- Unique ID validation for chunks and code blocks
-- Schema validation with Zod
-- Content length validation
-- Required field validation
+### Development Tools
+- `esbuild` - Fast bundling for production
+- `typescript` - Type checking
+- `ts-node` - Development execution
+- `jest-diff` - Test result comparison
 
-### Audit Functions
-```typescript
-auditChunks(chunks: Chunk[]): void     // Validate chunk data
-auditCodeBlocks(codeBlocks: CodeBlock[]): void  // Validate code blocks
-```
-
-## Build & Execution
-
-### Development
-```bash
-npm run test-admonition    # Test admonition parsing
-ts-node src/index.ts       # Direct execution
-```
-
-### Production Build
-```bash
-npm run build             # Build with esbuild
-npm run generate          # Run with predefined args
-```
-
-### GitHub Actions
-- Uses Node.js 20 runtime
-- Bundles with esbuild for distribution
-- Accepts inputs for paths and language
-
-## Key Constants
+## Constants
 - `CONTENT_MAX_LENGTH = 1000` - Maximum chunk size
 - Supported languages: `["en-us", "ja-jp"]`
-- Default ID prefix based on page route
+- TypeScript target: `ESNext` with `NodeNext` modules
 
 ## Special Features
 - MkDocs Admonition support via custom parser
 - Heading ID generation compatible with MkDocs
 - Adaptive chunk splitting when content exceeds limit
-- URL generation with anchor links
-- GitHub Actions integration for CI/CD
+- URL generation with anchor links for navigation
