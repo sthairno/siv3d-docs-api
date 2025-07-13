@@ -72,11 +72,11 @@ function main() {
   });
 
   // Get input values with environment variable priority (GitHub Actions support)
-  const siv3dDocsPath = process.env.INPUT_SIV3D_DOCS_PATH || argv["siv3d-docs-path"];
-  const siv3dDocsLanguage = process.env.INPUT_SIV3D_DOCS_LANGUAGE || argv["siv3d-docs-language"];
-  const chunksOutputPath = process.env.INPUT_CHUNKS_OUTPUT_PATH || argv["chunks-output-path"];
-  const codeBlocksOutputPath = process.env.INPUT_CODE_BLOCKS_OUTPUT_PATH || argv["code-blocks-output-path"];
-  const disableAudit = parseDisableAudit(process.env.INPUT_DISABLE_AUDIT || argv["disable-audit"]);
+  const siv3dDocsPath = process.env["INPUT_SIV3D-DOCS-PATH"] || argv["siv3d-docs-path"];
+  const siv3dDocsLanguage = process.env["INPUT_SIV3D-DOCS-LANGUAGE"] || argv["siv3d-docs-language"];
+  const chunksOutputPath = process.env["INPUT_CHUNKS-OUTPUT-PATH"] || argv["chunks-output-path"];
+  const codeBlocksOutputPath = process.env["INPUT_CODE-BLOCKS-OUTPUT-PATH"] || argv["code-blocks-output-path"];
+  const disableAudit = parseDisableAudit(process.env["INPUT_DISABLE-AUDIT"] || argv["disable-audit"]);
 
   // Validate required arguments
   if (!siv3dDocsPath) {
