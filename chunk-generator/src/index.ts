@@ -15,6 +15,15 @@ import { splitMarkdownIntoChunks } from "./lib/chunks";
 import { MarkdownDocument } from "./lib/markdown";
 import minimist from "minimist";
 
+function parseDisableAudit(value: string | boolean | undefined): boolean {
+  if (value === undefined) return false;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'true' || value === '1';
+  }
+  return false;
+}
+
 function auditChunks(chunks: Chunk[]): void {
   let chunkIdx = 0;
 
@@ -59,15 +68,15 @@ function main() {
       "siv3d-docs-language",
       "chunks-output-path",
       "code-blocks-output-path",
-      "disable-audit",
     ],
   });
 
-  const siv3dDocsPath = argv["siv3d-docs-path"];
-  const siv3dDocsLanguage = argv["siv3d-docs-language"];
-  const chunksOutputPath = argv["chunks-output-path"];
-  const codeBlocksOutputPath = argv["code-blocks-output-path"];
-  const disableAudit = ["true", "1", ""].includes(argv["disable-audit"]);
+  // Get input values with environment variable priority (GitHub Actions support)
+  const siv3dDocsPath = process.env.INPUT_SIV3D_DOCS_PATH || argv["siv3d-docs-path"];
+  const siv3dDocsLanguage = process.env.INPUT_SIV3D_DOCS_LANGUAGE || argv["siv3d-docs-language"];
+  const chunksOutputPath = process.env.INPUT_CHUNKS_OUTPUT_PATH || argv["chunks-output-path"];
+  const codeBlocksOutputPath = process.env.INPUT_CODE_BLOCKS_OUTPUT_PATH || argv["code-blocks-output-path"];
+  const disableAudit = parseDisableAudit(process.env.INPUT_DISABLE_AUDIT || argv["disable-audit"]);
 
   // Validate required arguments
   if (!siv3dDocsPath) {
