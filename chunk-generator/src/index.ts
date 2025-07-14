@@ -59,8 +59,6 @@ function main() {
   const codeBlocksOutputDir = process.env["INPUT_CODE-BLOCKS-OUTPUT-DIR"];
   const disableValidation = process.env["INPUT_DISABLE-VALIDATION"] === "true";
 
-  console.log(process.env);
-
   // Validate required arguments
   if (!siv3dDocsDir || !siv3dDocsVersion || !siv3dDocsLanguage) {
     console.error(
