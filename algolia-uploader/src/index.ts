@@ -38,14 +38,13 @@ async function main() {
     waitForTasks: true,
     createIfNotExists: true,
     objects: chunks,
-    batchSize: 500,
   });
 
   console.log(`Deleting the old chunks from ${algoliaIndexName}`);
   const deleteByResponse = await algoliaClient.deleteBy({
     indexName: algoliaIndexName,
     deleteByParams: {
-      filters: `NOT version:${siv3dDocsVersion}`,
+      filters: `NOT pageVersion:${siv3dDocsVersion}`,
     },
   });
   await algoliaClient.waitForTask({
