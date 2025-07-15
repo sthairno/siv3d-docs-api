@@ -38,6 +38,7 @@ async function main() {
     waitForTasks: true,
     createIfNotExists: true,
     objects: chunks,
+    batchSize: 500,
   });
 
   console.log(`Deleting the old chunks from ${algoliaIndexName}`);
