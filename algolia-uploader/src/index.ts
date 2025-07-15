@@ -40,17 +40,17 @@ async function main() {
     objects: chunks,
   });
 
-  // console.log(`Deleting the old chunks from ${algoliaIndexName}`);
-  // const deleteByResponse = await algoliaClient.deleteBy({
-  //   indexName: algoliaIndexName,
-  //   deleteByParams: {
-  //     filters: `NOT pageVersion:${siv3dDocsVersion}`,
-  //   },
-  // });
-  // await algoliaClient.waitForTask({
-  //   indexName: algoliaIndexName,
-  //   taskID: deleteByResponse.taskID,
-  // });
+  console.log(`Deleting the old chunks from ${algoliaIndexName}`);
+  const deleteByResponse = await algoliaClient.deleteBy({
+    indexName: algoliaIndexName,
+    deleteByParams: {
+      filters: `NOT pageVersion:${siv3dDocsVersion}`,
+    },
+  });
+  await algoliaClient.waitForTask({
+    indexName: algoliaIndexName,
+    taskID: deleteByResponse.taskID,
+  });
   console.log("Done");
 }
 
