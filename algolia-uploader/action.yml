@@ -1,0 +1,23 @@
+name: Algolia Uploader
+description: Upload chunks to Algolia search index
+
+inputs:
+  algolia-app-id:
+    description: The Algolia application ID
+    required: true
+  algolia-api-key:
+    description: The Algolia API key
+    required: true
+  algolia-index-name:
+    description: The Algolia index name
+    required: true
+  chunks-file-path:
+    description: The path to the chunks.json file
+    required: true
+  siv3d-docs-version:
+    description: The current commit hash of siv3d.docs repository
+    required: true
+
+runs:
+  using: node20
+  main: dist/index.js
