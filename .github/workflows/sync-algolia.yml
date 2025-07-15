@@ -1,4 +1,4 @@
-name: Generate Documentation Chunks
+name: Sync Documentation Chunks to Algolia
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         type: string
 
 jobs:
-  generate-chunks:
+  sync-algolia:
     runs-on: ubuntu-latest
     
     steps:
@@ -50,3 +50,21 @@ jobs:
             code-blocks-ja-jp
             chunks-en-us.json
             code-blocks-en-us
+      
+      - name: Upload generated chunks to Algolia for Japanese
+        uses: ./algolia-uploader/
+        with:
+          algolia-app-id: ${{ vars.ALGOLIA_APP_ID }}
+          algolia-api-key: ${{ secrets.ALGOLIA_WRITE_OBJECT_API_KEY }}
+          algolia-index-name: "siv3d-docs-jp"
+          chunks-file-path: chunks-ja-jp.json
+          siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
+          
+      - name: Upload generated chunks to Algolia for English
+        uses: ./algolia-uploader/
+        with:
+          algolia-app-id: ${{ vars.ALGOLIA_APP_ID }}
+          algolia-api-key: ${{ secrets.ALGOLIA_WRITE_OBJECT_API_KEY }}
+          algolia-index-name: "siv3d-docs-en"
+          chunks-file-path: chunks-en-us.json
+          siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
