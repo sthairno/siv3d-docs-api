@@ -9,6 +9,7 @@
 // - 配列はen-usとja-jpで別々になるため、入力で言語を指定できるようにすること
 
 import * as fs from "fs";
+import * as path from "path";
 import { CONTENT_MAX_LENGTH, ChunkSchema, Chunk, CodeBlock } from "../schema";
 import { walkSiv3dDocsMarkdowns } from "./lib/utils";
 import { splitMarkdownIntoChunks } from "./lib/chunks";
@@ -116,6 +117,11 @@ function main() {
 
   // Write chunks to file
   if (chunksOutputFile) {
+    // Ensure directory exists before writing file
+    const chunksOutputDir = path.dirname(chunksOutputFile);
+    if (!fs.existsSync(chunksOutputDir)) {
+      fs.mkdirSync(chunksOutputDir, { recursive: true });
+    }
     fs.writeFileSync(chunksOutputFile, JSON.stringify(chunks));
     console.log(`Chunks written to: ${chunksOutputFile}`);
   }
