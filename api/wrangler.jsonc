@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "siv3d-docs",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-28",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "keep_vars": true,
+  "r2_buckets": [
+    {
+      "binding": "SIV3D_DOCS_STORAGE",
+      "bucket_name": "siv3d-docs-storage",
+      "experimental_remote": true
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "name": "siv3d-docs-api",
+  "scripts": {
+    "dev": "wrangler dev --x-remote-bindings",
+    "deploy": "wrangler deploy --minify",
+    "generate-types": "wrangler types --env-interface CloudflareBindings src/cloudflare.d.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@algolia/client-search": "^5.29.0",
+    "@hono/mcp": "^0.1.0",
+    "@hono/zod-validator": "^0.7.1",
+    "@modelcontextprotocol/sdk": "^1.15.1",
+    "hono": "^4.8.3",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.7",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
+    "wrangler": "^4.4.0"
+  }
+}
