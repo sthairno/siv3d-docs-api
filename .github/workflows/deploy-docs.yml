@@ -42,12 +42,17 @@ jobs:
           chunks-output-file: ./deploy/algolia/chunks-en-us.json
           code-blocks-output-dir: ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/codeblock/en-us
           
+      - name: Create deploy directories
+        run: |
+
       - name: Copy markdown files to deploy/storage
         run: |
+          mkdir -p ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/markdown/ja-jp
           rsync -av \
             --exclude='assets/' \
             ./siv3d.docs/ja-jp/docs/ \
             ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/markdown/ja-jp/
+          mkdir -p ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/markdown/en-us
           rsync -av \
             --exclude='assets/' \
             ./siv3d.docs/en-us/docs/ \
