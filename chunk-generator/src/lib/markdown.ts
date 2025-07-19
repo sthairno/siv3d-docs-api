@@ -77,21 +77,16 @@ type NodeType =
 export class MarkdownDocument {
   private _ast: AstRoot;
   private _firstHeading: MarkdownHeading | null;
-  private _codeBlocks: MarkdownCodeBlock[];
 
-  constructor(content: string, options?: { retrieveCodeBlocks?: boolean }) {
+  constructor(content: string) {
     this._ast = markdownToAst(content, {
       extensions: [mkdocsAdmonition],
       mdastExtensions: [mkdocsAdmonitionFromMarkdown],
     });
 
     this._firstHeading = null;
-    this._codeBlocks = [];
 
     this.retrieveHeadings();
-    if (options?.retrieveCodeBlocks ?? true) {
-      this.retrieveCodeBlocks();
-    }
   }
 
   get contentAst(): AstRootContent[] {
@@ -100,10 +95,6 @@ export class MarkdownDocument {
 
   get firstHeading(): MarkdownHeading | null {
     return this._firstHeading;
-  }
-
-  get codeBlocks(): ReadonlyArray<MarkdownCodeBlock> {
-    return this._codeBlocks;
   }
 
   *getHeadings(): Generator<MarkdownHeading> {
@@ -172,8 +163,9 @@ export class MarkdownDocument {
     assert(this._firstHeading !== null);
   }
 
-  private retrieveCodeBlocks(): void {
+  public extractCodeBlocks(idPrefix: string = ""): MarkdownCodeBlock[] {
     const idCounts: Map<string, number> = new Map();
+    const codeBlocks: MarkdownCodeBlock[] = [];
 
     let currentHeading = this._firstHeading;
     while (currentHeading) {
@@ -182,29 +174,38 @@ export class MarkdownDocument {
       const endIndex = nextHeading?.astIndex ?? this.contentAst.length;
 
       for (let i = beginIndex; i < endIndex; i++) {
-        this.processCodeBlock(this.contentAst[i], currentHeading.id, idCounts);
+        this.processCodeBlock(this.contentAst[i], {
+          idPrefix: idPrefix + currentHeading.id,
+          idCounts,
+          codeBlocks,
+        });
       }
 
       currentHeading = nextHeading;
     }
+
+    return codeBlocks;
   }
 
   private processCodeBlock(
     node: NodeType,
-    headingId: string,
-    idCounts: Map<string, number>
+    context: {
+      idPrefix: string;
+      idCounts: Map<string, number>;
+      codeBlocks: MarkdownCodeBlock[];
+    }
   ): void {
     if (node.type === "code") {
       // コードブロックをASTから生成
-      const count = idCounts.get(headingId) ?? 0;
-      idCounts.set(headingId, count + 1);
+      const count = context.idCounts.get(context.idPrefix) ?? 0;
+      context.idCounts.set(context.idPrefix, count + 1);
 
-      let codeId = `${headingId}_code`;
+      let codeId = `${context.idPrefix}_code`;
       if (count > 0) {
         codeId += `_${count}`;
       }
 
-      this._codeBlocks.push({
+      context.codeBlocks.push({
         id: codeId,
         language: node.lang ?? null,
         content: node.value,
@@ -219,7 +220,7 @@ export class MarkdownDocument {
     } else if ("children" in node && Array.isArray(node.children)) {
       // Parentノードの場合は子要素を再帰的に処理
       for (const child of node.children) {
-        this.processCodeBlock(child, headingId, idCounts);
+        this.processCodeBlock(child, context);
       }
     }
   }

@@ -91,6 +91,8 @@ function main() {
     const pageId = route.map((p) => p.toLowerCase()).join("-");
     const content = fs.readFileSync(filePath, "utf-8");
     const markdown = new MarkdownDocument(content);
+    const extractedCodeBlocks = markdown.extractCodeBlocks(`${pageId}_`);
+
     chunks.push(
       ...splitMarkdownIntoChunks(
         markdown,
@@ -101,8 +103,8 @@ function main() {
       )
     );
     codeBlocks.push(
-      ...markdown.codeBlocks.map<CodeBlock>((src) => ({
-        id: `${pageId}_${src.id}`,
+      ...extractedCodeBlocks.map<CodeBlock>((src) => ({
+        id: src.id,
         pageId: pageId,
         language: src.language,
         content: src.content,

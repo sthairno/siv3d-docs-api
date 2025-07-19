@@ -14,9 +14,7 @@ console.log(testContent);
 console.log("\n");
 
 // MarkdownDocumentを作成
-const doc = new MarkdownDocument(testContent, {
-  retrieveCodeBlocks: false,
-});
+const doc = new MarkdownDocument(testContent);
 
 function normalizeAst(ast: any): any {
   if (Array.isArray(ast)) {
