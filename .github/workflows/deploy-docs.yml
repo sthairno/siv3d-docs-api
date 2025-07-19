@@ -78,7 +78,7 @@ jobs:
     name: Deploy to Algolia
     runs-on: ubuntu-latest
     needs: generate-data
-    if: ${{ !github.event.inputs.skip_algolia }}
+    if: ${{ github.event.inputs.skip_algolia == 'false' }}
     steps:
       - name: Checkout chunk-generator repository
         uses: actions/checkout@v4
@@ -111,7 +111,7 @@ jobs:
     name: Deploy to R2
     runs-on: ubuntu-latest
     needs: generate-data
-    if: ${{ !github.event.inputs.skip_r2 }}
+    if: ${{ github.event.inputs.skip_r2 == 'false' }}
     steps:
       - name: Download generated chunks
         uses: actions/download-artifact@v4
