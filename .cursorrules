@@ -3,18 +3,7 @@
 ## Project Overview
 This monorepo provides tooling for the Siv3D documentation ecosystem. It processes Siv3D documentation (Markdown) into searchable chunks and serves them through various APIs for integration with AI tools like Claude Code and ChatGPT GPTs.
 
-### System Architecture
-```
-siv3d.docs (External)
-    ↓ (GitHub Actions Trigger)
-chunk-generator → chunks.json + code-blocks/
-    ↓
-algolia-uploader → Algolia Search Index
-    ↓
-api (Cloudflare Workers) ← Users (MCP/REST/GPTs)
-    ↓
-R2 Storage (Markdown + Code Blocks)
-```
+
 
 ## Monorepo Structure
 
@@ -27,21 +16,7 @@ R2 Storage (Markdown + Code Blocks)
   - **REST API** (`/api/*`) - OpenAPI-compliant endpoints for GPTs
   - **Static Assets** - OpenAPI documentation serving
 
-**Key Files**:
-```
-api/
-├── src/
-│   ├── index.ts              # Hono app with MCP and REST routing
-│   ├── controllers/
-│   │   ├── mcp.ts           # MCP server implementation
-│   │   └── rest.ts          # REST API controllers
-│   ├── lib/
-│   │   ├── algolia.ts       # Search functionality
-│   │   └── storage.ts       # R2 file operations
-│   └── cloudflare.d.ts      # Cloudflare Workers type definitions
-├── public/openapi.yaml      # REST API specification
-└── wrangler.jsonc           # Cloudflare Workers configuration
-```
+
 
 ### 🔧 Processing Actions (All Other Directories)
 **GitHub Actions-based data processing pipeline**
