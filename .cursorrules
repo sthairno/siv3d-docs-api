@@ -1,182 +1,161 @@
-# chunk-generator Project Rules
+# Siv3D Documentation Tools - Monorepo
 
 ## Project Overview
-TypeScript tool that converts Siv3D documentation (Markdown) into optimized chunks for Algolia search engine.
+This monorepo provides tooling for the Siv3D documentation ecosystem. It processes Siv3D documentation (Markdown) into searchable chunks and serves them through various APIs for integration with AI tools like Claude Code and ChatGPT GPTs.
 
-## Architecture
 
-### File Structure
-```
-chunk-generator/
-├── src/
-│   ├── index.ts           # Main entry point & CLI handling
-│   └── lib/
-│       ├── chunks.ts      # Chunk splitting logic
-│       ├── markdown.ts    # Markdown parsing & processing
-│       ├── sections.ts    # Section splitting
-│       └── utils.ts       # Utility functions
-├── test/
-│   ├── admonition.ts      # Test for MkDocs admonition parsing
-│   ├── admonition-input.md
-│   └── admonition-output.json
-├── schema.ts              # Zod data schemas
-├── action.yml             # GitHub Actions config
-└── dist/                  # Build output
-```
 
-### Data Models
+## Monorepo Structure
 
-#### Chunk Schema
-```typescript
-{
-  objectID: string,        // Unique ID for search
-  pageID: string,          // Page identifier
-  headings: string[],      // Heading hierarchy (breadcrumbs)
-  url: string,             // URL to siv3d.github.io page
-  order: number,           // Order within page (0, 1, 2...)
-  content: string          // Content (max 1000 chars)
-}
-```
+### 🌐 API Service (`api/`)
+**Primary Component**: Cloudflare Workers-based API server
+- **Framework**: Hono with TypeScript
+- **Deployment**: Cloudflare Workers + R2 + Algolia
+- **Interfaces**:
+  - **MCP Server** (`/mcp`) - Model Context Protocol for Claude Code
+  - **REST API** (`/api/*`) - OpenAPI-compliant endpoints for GPTs
+  - **Static Assets** - OpenAPI documentation serving
 
-#### CodeBlock Schema
-```typescript
-{
-  id: string,              // Unique ID
-  pageId: string,          // Page identifier
-  language: string | null, // Programming language
-  content: string          // Code content
-}
-```
+
+
+### 🔧 Processing Actions (All Other Directories)
+**GitHub Actions-based data processing pipeline**
+
+#### `chunk-generator/`
+Converts Siv3D documentation into search-optimized chunks
+- **Input**: siv3d.docs directory + language + version
+- **Output**: `chunks.json` + individual code block files
+- **Environment**: GitHub Actions only (no CLI support)
+- **Key Features**:
+  - Markdown AST parsing with mdast
+  - Section-based content splitting (1000 char limit)
+  - MkDocs admonition support
+  - Heading hierarchy preservation
+  - Code block extraction
+
+#### `algolia-uploader/`
+Uploads processed chunks to Algolia search indexes
+- **Input**: `chunks.json` + Algolia credentials
+- **Output**: Updated Algolia search index
+- **Environment**: GitHub Actions only
+- **Features**:
+  - Batch upload to Algolia
+  - Data validation with Zod schemas
+  - Language-specific index management
 
 ## Development Workflow
 
-### Prerequisites
-- Node.js 20+
-- TypeScript installed
-- Access to `siv3d.docs` directory
-
-### Setup
+### API Development (`api/`)
 ```bash
-# Install dependencies
-yarn install
+# Local development with remote bindings
+cd api
+yarn dev
 
-# Verify siv3d.docs exists
-ls ../siv3d.docs  # Should contain markdown files
+# Type generation for Cloudflare bindings
+yarn generate-types
+
+# Deploy to production
+yarn deploy
 ```
 
-### Build Process
+### Actions Development (`chunk-generator/`, `algolia-uploader/`)
 ```bash
-# Development build with type checking
-yarn tsc
+# Build for GitHub Actions
+cd chunk-generator
+yarn build  # Creates dist/index.js for node20 runtime
 
-# Production build (bundles into single file)
-yarn build
-# Creates: dist/index.js (Node.js 20 compatible, minified)
+cd algolia-uploader
+yarn build  # Creates dist/index.js for node20 runtime
 ```
 
-### Testing
-```bash
-# Test MkDocs admonition parsing
-yarn test-admonition
+### Full Pipeline Execution
+Triggered by GitHub Actions workflow (`.github/workflows/deploy-docs.yml`):
+1. **Input**: siv3d.docs commit hash
+2. **chunk-generator**: Generate chunks for ja-jp and en-us
+3. **algolia-uploader**: Upload to respective Algolia indexes
+4. **R2 sync**: Upload markdown + code blocks to Cloudflare R2
 
-# Manual test with custom args
-yarn ts-node src/index.ts \
-  --siv3d-docs-path /path/to/siv3d.docs \
-  --siv3d-docs-language ja-jp \
-  --chunks-output-path chunks.json \
-  --code-blocks-output-path code-blocks.json
-```
+## Technical Specifications
 
-### Execution
+### Data Models
+- **Chunk Schema**: Defined in `chunk-generator/schema.ts`
+- **CodeBlock Schema**: Shared across processing pipeline
+- **Validation**: All schemas use Zod for runtime type checking
 
-#### Development Mode
-```bash
-# Quick execution with predefined paths
-yarn generate
+### GitHub Actions Integration
 
-# Custom execution
-yarn ts-node src/index.ts \
-  --siv3d-docs-path ../siv3d.docs \
-  --siv3d-docs-language en-us \
-  --chunks-output-path chunks-en.json \
-  --code-blocks-output-path code-blocks-en.json
-```
+#### Environment Variables (Actions Input)
+**chunk-generator**:
+- `INPUT_SIV3D-DOCS-DIR` - siv3d.docs directory path
+- `INPUT_SIV3D-DOCS-LANGUAGE` - "en-us" or "ja-jp"  
+- `INPUT_SIV3D-DOCS-VERSION` - Git commit hash
+- `INPUT_CHUNKS-OUTPUT-FILE` - Output JSON file path
+- `INPUT_CODE-BLOCKS-OUTPUT-DIR` - Code blocks directory
+- `INPUT_DISABLE-VALIDATION` - Skip validation (optional)
 
-#### Production Mode
-```bash
-# Build first
-yarn build
+**algolia-uploader**:
+- `INPUT_ALGOLIA-APP-ID` - Algolia application ID
+- `INPUT_ALGOLIA-API-KEY` - Algolia write API key
+- `INPUT_ALGOLIA-INDEX-NAME` - Target index name
+- `INPUT_CHUNKS-FILE-PATH` - Input chunks.json path
+- `INPUT_SIV3D-DOCS-VERSION` - Version for metadata
 
-# Execute built version
-node dist/index.js \
-  --siv3d-docs-path ../siv3d.docs \
-  --siv3d-docs-language ja-jp \
-  --chunks-output-path chunks.json \
-  --code-blocks-output-path code-blocks.json
-```
+### Cloudflare Workers Configuration
 
-### Required Arguments
-- `--siv3d-docs-path` - Path to siv3d.docs directory
-- `--siv3d-docs-language` - Language code (`en-us` or `ja-jp`)
-- `--chunks-output-path` - Output file for chunk data
-- `--code-blocks-output-path` - Output file for code block data
+#### Required Bindings
+- **R2 Storage**: `SIV3D_DOCS_STORAGE` for file operations
+- **Assets**: Static file serving capability
+- **Environment Variables**: Algolia credentials and configuration
 
-### Optional Arguments
-- `--disable-audit` - Skip data validation (`true`, `1`, or empty string)
+#### Supported Languages
+- `en-us` - English documentation
+- `ja-jp` - Japanese documentation
 
 ## Implementation Guidelines
 
-### Core Principles
-- Split content by markdown headings (sections)
-- Respect 1000 character limit per chunk
-- Maintain heading hierarchy in chunks
-- Extract code blocks separately
-- Validate data integrity with Zod schemas
-
-### Error Handling
-- Validate all required CLI arguments
-- Check file/directory existence before processing
-- Audit data integrity before output
-- Use descriptive error messages with proper exit codes
-
 ### TypeScript Patterns
-```typescript
-// CLI argument parsing
-const argv = minimist(process.argv.slice(2), {
-  string: ["siv3d-docs-path", "siv3d-docs-language", "chunks-output-path", "code-blocks-output-path"]
-});
+- **Zod Validation**: All data structures validated at runtime
+- **Type Safety**: Strict TypeScript configuration across all projects
+- **Error Handling**: Proper HTTP status codes and descriptive error messages
+- **Environment Variables**: GitHub Actions environment variable pattern
 
-// Data validation
-auditChunks(chunks: Chunk[]): void
-auditCodeBlocks(codeBlocks: CodeBlock[]): void
-```
+### API Design Principles
+- **MCP Compliance**: Follow Model Context Protocol specifications
+- **OpenAPI**: REST endpoints documented and validated
+- **Content Delivery**: Structured Markdown responses for AI consumption
+- **Caching**: Leverage Cloudflare Workers edge caching
 
-### Key Classes
-- `MarkdownDocument` - Main document processor with AST parsing
-- `MarkdownHeading` - Heading hierarchy management
-- Use getters for computed properties
-- Implement proper error handling
+### Code Organization
+- **Shared Schemas**: Common data models in `chunk-generator/schema.ts`
+- **Modular Architecture**: Clear separation between parsing, processing, and serving
+- **Single Responsibility**: Each action/service handles one specific task
 
-## Dependencies
+### Constants and Limits
+- `CONTENT_MAX_LENGTH = 1000` - Maximum chunk content size
+- **Node.js 20** - Runtime target for all components
+- **ESNext + NodeNext** - TypeScript compilation target
+- **Cloudflare Workers** - Edge runtime limitations apply
 
-### Core Runtime
-- `mdast-util-from-markdown` - Markdown AST parsing
-- `zod` - Schema validation and runtime checking
-- `minimist` - CLI argument parsing
-
-### Development Tools
-- `esbuild` - Fast bundling for production
-- `typescript` - Type checking
-- `ts-node` - Development execution
-- `jest-diff` - Test result comparison
-
-## Constants
-- `CONTENT_MAX_LENGTH = 1000` - Maximum chunk size
-- Supported languages: `["en-us", "ja-jp"]`
-- TypeScript target: `ESNext` with `NodeNext` modules
+## Dependencies Overview
+- **Package Manager**: Yarn (all projects)
+- **Runtime**: Node.js 20+ with TypeScript 5.8+
+- **Build Tool**: esbuild for production bundles
+- **Validation**: Zod for runtime type checking
+- **Key Frameworks**: Hono (API), mdast (Markdown), Algolia SDK
 
 ## Special Features
-- MkDocs Admonition support via custom parser
-- Heading ID generation compatible with MkDocs
-- Adaptive chunk splitting when content exceeds limit
-- URL generation with anchor links for navigation
+
+### MkDocs Compatibility
+- **Admonition Parsing** - Custom parser for MkDocs admonitions
+- **Heading ID Generation** - Compatible with MkDocs anchor links
+- **URL Generation** - Proper siv3d.github.io linking
+
+### AI Integration
+- **MCP Protocol** - Native Claude Code integration
+- **Structured Output** - Markdown responses optimized for AI consumption
+- **GPT Actions** - OpenAPI-compatible REST endpoints
+
+### Production Deployment
+- **Multi-stage Pipeline** - Separate data generation and API deployment
+- **Version Tracking** - Git commit-based versioning
+- **Multi-language Support** - Parallel processing for en-us and ja-jp
