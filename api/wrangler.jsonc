@@ -10,6 +10,11 @@
     "enabled": true
   },
   "keep_vars": true,
+  "assets": {
+    "directory": "public",
+    "binding": "ASSETS",
+    "run_worker_first": [ "/", "/api/*", "/mcp" ]
+  },
   "r2_buckets": [
     {
       "binding": "SIV3D_DOCS_STORAGE",

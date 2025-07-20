@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: Siv3D Documentation API
+  description: API for searching and retrieving Siv3D documentation
+  version: 1.0.0
+
+servers:
+  - url: https://siv3d-docs.sthairno.workers.dev
+
+paths:
+  /api/docs/search:
+    get:
+      summary: Search documentation
+      description: Search Siv3D documentation and return results in structured Markdown format
+      operationId: searchDocs
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+        - name: lang
+          in: query
+          required: true
+          description: Language code of search query and result
+          schema:
+            type: string
+            enum: [ja-jp, en-us]
+            example: "en-us"
+      responses:
+        '200':
+          description: Search results (Markdown format)
+          content:
+            text/markdown; charset=utf-8:
+              schema:
+                type: string
+                description: Structured Markdown format search results
+
+  /api/docs/markdown:
+    get:
+      summary: Get Markdown document
+      description: Retrieve Markdown content of Siv3D documentation from the specified URL
+      operationId: getMarkdown
+      parameters:
+        - name: url
+          in: query
+          required: true
+          description: siv3d.github.io URL
+          schema:
+            type: string
+            format: uri
+            example: "https://siv3d.github.io/en-us/tutorial/array/"
+      responses:
+        '200':
+          description: Markdown content
+          content:
+            text/markdown; charset=utf-8:
+              schema:
+                type: string
+
+  /api/codeblock/{lang}/{id}:
+    get:
+      summary: Get code block
+      description: Retrieve a code block by language and ID
+      operationId: getCodeblock
+      parameters:
+        - name: lang
+          in: path
+          required: true
+          description: Language code
+          schema:
+            type: string
+            enum: [ja-jp, en-us]
+            example: "en-us"
+        - name: id
+          in: path
+          required: true
+          description: Code block ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Code block content
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+
+tags:
+  - name: Search
+    description: Documentation search related endpoints
+  - name: Documents
+    description: Document retrieval related endpoints
+  - name: CodeBlocks
+    description: Code block retrieval related endpoints
