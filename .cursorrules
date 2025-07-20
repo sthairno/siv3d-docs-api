@@ -74,23 +74,23 @@ Uploads processed chunks to Algolia search indexes
 ```bash
 # Local development with remote bindings
 cd api
-npm run dev
+yarn dev
 
 # Type generation for Cloudflare bindings
-npm run generate-types
+yarn generate-types
 
 # Deploy to production
-npm run deploy
+yarn deploy
 ```
 
 ### Actions Development (`chunk-generator/`, `algolia-uploader/`)
 ```bash
 # Build for GitHub Actions
 cd chunk-generator
-npm run build  # Creates dist/index.js for node20 runtime
+yarn build  # Creates dist/index.js for node20 runtime
 
 cd algolia-uploader
-npm run build  # Creates dist/index.js for node20 runtime
+yarn build  # Creates dist/index.js for node20 runtime
 ```
 
 ### Full Pipeline Execution
@@ -103,29 +103,9 @@ Triggered by GitHub Actions workflow (`.github/workflows/deploy-docs.yml`):
 ## Technical Specifications
 
 ### Data Models
-
-#### Chunk Schema (Shared across all components)
-```typescript
-{
-  objectID: string,        // Algolia-compatible unique ID
-  pageID: string,          // Page identifier (kebab-case)
-  headings: string[],      // Breadcrumb hierarchy
-  url: string,             // siv3d.github.io URL with anchors
-  order: number,           // Within-page ordering (0, 1, 2...)
-  content: string,         // Content (max 1000 characters)
-  version: string          // siv3d.docs commit hash
-}
-```
-
-#### CodeBlock Schema
-```typescript
-{
-  id: string,              // Unique identifier
-  pageId: string,          // Associated page
-  language: string | null, // Programming language
-  content: string          // Code content
-}
-```
+- **Chunk Schema**: Defined in `chunk-generator/schema.ts`
+- **CodeBlock Schema**: Shared across processing pipeline
+- **Validation**: All schemas use Zod for runtime type checking
 
 ### GitHub Actions Integration
 
@@ -148,15 +128,9 @@ Triggered by GitHub Actions workflow (`.github/workflows/deploy-docs.yml`):
 ### Cloudflare Workers Configuration
 
 #### Required Bindings
-```typescript
-interface CloudflareBindings {
-  SIV3D_DOCS_STORAGE: R2Bucket;          // File storage
-  ASSETS: AssetsFetcher;                  // Static assets
-  // Environment variables:
-  ALGOLIA_APP_ID: string;
-  ALGOLIA_SEARCH_API_KEY: string;
-}
-```
+- **R2 Storage**: `SIV3D_DOCS_STORAGE` for file operations
+- **Assets**: Static file serving capability
+- **Environment Variables**: Algolia credentials and configuration
 
 #### Supported Languages
 - `en-us` - English documentation
@@ -188,23 +162,11 @@ interface CloudflareBindings {
 - **Cloudflare Workers** - Edge runtime limitations apply
 
 ## Dependencies Overview
-
-### Core Runtime (All Projects)
-- **TypeScript 5.8+** - Type system and compilation
-- **Node.js 20+** - Runtime environment
-- **Zod** - Runtime type validation
-- **esbuild** - Fast bundling for production
-
-### API-Specific (`api/`)
-- **Hono** - Web framework for Cloudflare Workers
-- **@hono/mcp** - MCP protocol implementation
-- **@algolia/client-search** - Algolia search client
-- **@modelcontextprotocol/sdk** - MCP server SDK
-
-### Processing-Specific (`chunk-generator/`, `algolia-uploader/`)
-- **mdast-util-from-markdown** - Markdown AST parsing
-- **algoliasearch** - Algolia upload client
-- **jest-diff** - Test utilities
+- **Package Manager**: Yarn (all projects)
+- **Runtime**: Node.js 20+ with TypeScript 5.8+
+- **Build Tool**: esbuild for production bundles
+- **Validation**: Zod for runtime type checking
+- **Key Frameworks**: Hono (API), mdast (Markdown), Algolia SDK
 
 ## Special Features
 
