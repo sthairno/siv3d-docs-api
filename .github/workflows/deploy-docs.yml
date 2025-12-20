@@ -21,6 +21,7 @@ on:
 jobs:
   call-core:
     uses: ./.github/workflows/deploy-docs-core.yml
+    secrets: inherit
     with:
       siv3d_docs_commit_hash: ${{ inputs.siv3d_docs_commit_hash }}
       skip_algolia: ${{ inputs.skip_algolia }}
