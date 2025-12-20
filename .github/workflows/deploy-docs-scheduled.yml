@@ -74,6 +74,7 @@ jobs:
     needs: decide
     if: needs.decide.outputs.should_deploy == 'true'
     uses: ./.github/workflows/deploy-docs-core.yml
+    secrets: inherit
     with:
       siv3d_docs_commit_hash: ${{ needs.decide.outputs.latest_sha }}
       skip_algolia: ${{ inputs.skip_algolia || false }}
