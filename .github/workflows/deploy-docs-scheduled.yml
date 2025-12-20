@@ -1,0 +1,104 @@
+name: Deploy Documentation (scheduled)
+
+on:
+  schedule:
+    - cron: "0 0 * * 0" # 毎週日曜 00:00 UTC (= JST 09:00)
+  workflow_dispatch:
+    inputs:
+      skip_algolia:
+        description: 'Skip Algolia deployment'
+        required: false
+        type: boolean
+        default: false
+      skip_r2:
+        description: 'Skip R2 deployment'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-docs-scheduled
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.gate.outputs.should_deploy }}
+      latest_sha: ${{ steps.upstream.outputs.latest_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Get latest SHA of Siv3D/siv3d.docs main
+        id: upstream
+        run: |
+          set -euo pipefail
+          latest_sha="$(curl -fsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/Siv3D/siv3d.docs/commits/main" \
+            | jq -r '.sha')"
+          echo "latest_sha=$latest_sha" >> "$GITHUB_OUTPUT"
+          echo "Latest upstream SHA: $latest_sha"
+
+      - name: Compare with saved state
+        id: gate
+        run: |
+          set -euo pipefail
+          state_file=".state/siv3d_docs_main_sha.txt"
+          mkdir -p ".state"
+          latest="${{ steps.upstream.outputs.latest_sha }}"
+          saved=""
+          if [[ -f "$state_file" ]]; then
+            saved="$(cat "$state_file" | tr -d '\n' || true)"
+          fi
+
+          echo "Saved SHA:  $saved"
+          echo "Latest SHA: $latest"
+
+          if [[ "$latest" == "$saved" ]]; then
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: decide
+    if: needs.decide.outputs.should_deploy == 'true'
+    uses: ./.github/workflows/deploy-docs-core.yml
+    with:
+      siv3d_docs_commit_hash: ${{ needs.decide.outputs.latest_sha }}
+      skip_algolia: ${{ inputs.skip_algolia || false }}
+      skip_r2: ${{ inputs.skip_r2 || false }}
+
+  update-state:
+    needs: [decide, deploy]
+    if: needs.decide.outputs.should_deploy == 'true' && needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update state file
+        run: |
+          set -euo pipefail
+          mkdir -p ".state"
+          echo "${{ needs.decide.outputs.latest_sha }}" > ".state/siv3d_docs_main_sha.txt"
+
+      - name: Commit and push state
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .state/siv3d_docs_main_sha.txt
+          git commit -m "chore(state): update siv3d.docs main sha" || exit 0
+          git push
