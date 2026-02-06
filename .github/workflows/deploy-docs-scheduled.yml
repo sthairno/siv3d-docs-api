@@ -1,0 +1,51 @@
+name: Deploy Documentation (scheduled)
+
+on:
+  schedule:
+    - cron: "0 0 * * 0" # 毎週日曜 00:00 UTC (= JST 09:00)
+  workflow_dispatch:
+    inputs:
+      skip_algolia:
+        description: 'Skip Algolia deployment'
+        required: false
+        type: boolean
+        default: false
+      skip_r2:
+        description: 'Skip R2 deployment'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-docs-scheduled
+  cancel-in-progress: true
+
+jobs:
+  get-latest-sha:
+    runs-on: ubuntu-latest
+    outputs:
+      latest_sha: ${{ steps.upstream.outputs.latest_sha }}
+    steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Get latest SHA of Siv3D/siv3d.docs main
+        id: upstream
+        run: |
+          set -euo pipefail
+          latest_sha="$(curl -fsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            "https://api.github.com/repos/Siv3D/siv3d.docs/commits/main" \
+            | jq -r '.sha')"
+          echo "latest_sha=$latest_sha" >> "$GITHUB_OUTPUT"
+          echo "Latest upstream SHA: $latest_sha"
+
+  deploy:
+    needs: get-latest-sha
+    uses: ./.github/workflows/deploy-docs-core.yml
+    secrets: inherit
+    with:
+      siv3d_docs_commit_hash: ${{ needs.get-latest-sha.outputs.latest_sha }}
+      skip_algolia: ${{ inputs.skip_algolia || false }}
+      skip_r2: ${{ inputs.skip_r2 || false }}
