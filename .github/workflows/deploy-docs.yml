@@ -1,4 +1,4 @@
-name: Deploy Documentation
+name: Deploy Documentation (manual)
 
 on:
   workflow_dispatch:
@@ -19,127 +19,10 @@ on:
         default: false
 
 jobs:
-  generate-data:
-    name: Generate chunks
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout chunk-generator repository
-        uses: actions/checkout@v4
-        
-      - name: Checkout siv3d.docs repository
-        uses: actions/checkout@v4
-        with:
-          repository: 'Siv3D/siv3d.docs'
-          ref: ${{ github.event.inputs.siv3d_docs_commit_hash }}
-          path: 'siv3d.docs'
-          
-      - name: Generate chunks for Japanese
-        uses: ./chunk-generator/
-        with:
-          siv3d-docs-dir: ./siv3d.docs
-          siv3d-docs-language: ja-jp
-          siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
-          chunks-output-file: ./deploy/algolia/chunks-ja-jp.json
-          code-blocks-output-dir: ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/codeblock/ja-jp
-          
-      - name: Generate chunks for English
-        uses: ./chunk-generator/
-        with:
-          siv3d-docs-dir: ./siv3d.docs
-          siv3d-docs-language: en-us
-          siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
-          chunks-output-file: ./deploy/algolia/chunks-en-us.json
-          code-blocks-output-dir: ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/codeblock/en-us
-          
-      - name: Create deploy directories
-        run: |
-
-      - name: Copy markdown files to deploy/storage
-        run: |
-          mkdir -p ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/markdown/ja-jp
-          rsync -av \
-            --exclude='assets/' \
-            ./siv3d.docs/ja-jp/docs/ \
-            ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/markdown/ja-jp/
-          mkdir -p ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/markdown/en-us
-          rsync -av \
-            --exclude='assets/' \
-            ./siv3d.docs/en-us/docs/ \
-            ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/markdown/en-us/
-
-      - name: Upload generated chunks
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-chunks
-          path: deploy
-  
-  deploy-algolia:
-    name: Deploy to Algolia
-    runs-on: ubuntu-latest
-    needs: generate-data
-    if: ${{ github.event.inputs.skip_algolia == 'false' }}
-    steps:
-      - name: Checkout chunk-generator repository
-        uses: actions/checkout@v4
-
-      - name: Download generated chunks
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-chunks
-          path: deploy
-      
-      - name: Upload generated chunks to Algolia for Japanese
-        uses: ./algolia-uploader/
-        with:
-          algolia-app-id: ${{ vars.ALGOLIA_APP_ID }}
-          algolia-api-key: ${{ secrets.ALGOLIA_WRITE_OBJECT_API_KEY }}
-          algolia-index-name: "siv3d-docs-jp"
-          chunks-file-path: deploy/algolia/chunks-ja-jp.json
-          siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
-        
-      - name: Upload generated chunks to Algolia for English
-        uses: ./algolia-uploader/
-        with:
-          algolia-app-id: ${{ vars.ALGOLIA_APP_ID }}
-          algolia-api-key: ${{ secrets.ALGOLIA_WRITE_OBJECT_API_KEY }}
-          algolia-index-name: "siv3d-docs-en"
-          chunks-file-path: deploy/algolia/chunks-en-us.json
-          siv3d-docs-version: ${{ github.event.inputs.siv3d_docs_commit_hash }}
-  
-  deploy-r2:
-    name: Deploy to R2
-    runs-on: ubuntu-latest
-    needs: generate-data
-    if: ${{ github.event.inputs.skip_r2 == 'false' }}
-    steps:
-      - name: Download generated chunks
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-chunks
-          path: deploy
-
-      - name: Install rclone
-        run: sudo apt -y install rclone
-
-      - name: Configure rclone for R2
-        run: |
-          mkdir -p ~/.config/rclone
-          cat > ~/.config/rclone/rclone.conf << EOF
-          [r2]
-          type = s3
-          provider = Cloudflare
-          access_key_id = ${{ secrets.R2_ACCESS_KEY_ID }}
-          secret_access_key = ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          endpoint = ${{ vars.R2_ENDPOINT }}
-          acl = private
-          EOF
-
-      - name: Sync files to R2
-        run: |
-          rclone copy \
-            ./deploy/storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/ \
-            r2:siv3d-docs-storage/${{ github.event.inputs.siv3d_docs_commit_hash }}/ \
-            --progress \
-            --transfers=4 \
-            --checkers=8
+  call-core:
+    uses: ./.github/workflows/deploy-docs-core.yml
+    secrets: inherit
+    with:
+      siv3d_docs_commit_hash: ${{ inputs.siv3d_docs_commit_hash }}
+      skip_algolia: ${{ inputs.skip_algolia }}
+      skip_r2: ${{ inputs.skip_r2 }}
