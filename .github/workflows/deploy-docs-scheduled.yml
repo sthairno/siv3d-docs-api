@@ -47,5 +47,5 @@ jobs:
     secrets: inherit
     with:
       siv3d_docs_commit_hash: ${{ needs.get-latest-sha.outputs.latest_sha }}
-      skip_algolia: ${{ inputs.skip_algolia || false }}
-      skip_r2: ${{ inputs.skip_r2 || false }}
+      skip_algolia: ${{ inputs.skip_algolia == true }}
+      skip_r2: ${{ inputs.skip_r2 == true }}
